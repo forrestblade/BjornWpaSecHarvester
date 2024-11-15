@@ -68,3 +68,4 @@ if response.status_code == 204:
     print("Plik networks.txt został wysłany do Discorda.")
 else:
     print(f"Nie udało się wysłać pliku. Kod błędu: {response.status_code}")
+ 
