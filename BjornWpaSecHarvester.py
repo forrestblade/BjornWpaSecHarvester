@@ -110,7 +110,7 @@ def process_networks():
                 f'&& sudo nmcli connection modify "{ssid}" wifi-sec.key-mgmt wpa-psk wifi-sec.psk "{password}" connection.autoconnect yes'
             )
             print(f"Network: {ssid} injected!")
-            time.sleep(1)  # Opóźnienie 1 sekundy
+            time.sleep(1)
         except ValueError:
             print(f"Invalid line format: {network}")
 
