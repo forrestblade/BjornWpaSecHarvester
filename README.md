@@ -30,7 +30,7 @@ But that's not all—prepare yourself for an epic journey as Pwnagotchi teams up
 2. Clone the repository:
     ```bash
     git clone https://github.com/LOCOSP/BjornWpaSecHarvester.git
-    cd BjorWpaSecHarvester
+    cd BjornWpaSecHarvester
     ```
 
 
