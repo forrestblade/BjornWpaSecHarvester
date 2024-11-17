@@ -13,6 +13,8 @@ But that's not all—prepare yourself for an epic journey as Pwnagotchi teams up
 - Sends the unique networks to Discord using a webhook (optional).
 - Injects the networks into your system with `nmcli`.
 - Uses environment variables for configuration.
+- If you already know the network you want to test just put it's SSID and PASSWORD in order: `SSID:PASSWORD`
+and run the script.
 
 ## Screens
 
