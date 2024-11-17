@@ -14,6 +14,11 @@ But that's not all—prepare yourself for an epic journey as Pwnagotchi teams up
 - Injects the networks into your system with `nmcli`.
 - Uses environment variables for configuration.
 
+## Screens
+
+![processing](/assets/injecting.png)
+
+
 ## Installation
 
 ### Requirements
