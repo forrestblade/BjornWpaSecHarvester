@@ -4,6 +4,7 @@ import os
 import requests
 import time
 import shutil
+import subprocess
 
 def download_and_process_file():
     # Load variables from the .env file
@@ -82,7 +83,7 @@ def process_networks():
     if not shutil.which("nmcli"):
         print("nmcli is not installed. Please install it and try again.")
         return
-    
+
     try:
         with open(input_file, "r") as f:
             all_networks = set(line.strip() for line in f if line.strip())
@@ -95,24 +96,62 @@ def process_networks():
             processed_networks = set(line.strip() for line in f if line.strip())
     except FileNotFoundError:
         processed_networks = set()
-    
+
     new_networks = all_networks - processed_networks
 
     if not new_networks:
-        print("No new networks found to process....")
+        print("No new networks found to process.")
+        return
+
+    # Get the default Wi-Fi interface
+    try:
+        result = subprocess.run(
+            ["nmcli", "-t", "-f", "DEVICE,TYPE", "device", "status"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        wifi_device = next(
+            (line.split(":")[0] for line in result.stdout.splitlines() if "wifi" in line),
+            None
+        )
+        if not wifi_device:
+            print("No Wi-Fi device found.")
+            return
+    except subprocess.CalledProcessError as e:
+        print(f"Error while detecting Wi-Fi device: {e}")
         return
 
     for network in new_networks:
         try:
             ssid, password = network.split(":")
-            command = (
-                f'sudo nmcli connection add type wifi ifname "*" con-name "{ssid}" ssid "{ssid}" '
-                f'&& sudo nmcli connection modify "{ssid}" wifi-sec.key-mgmt wpa-psk wifi-sec.psk "{password}" connection.autoconnect yes'
+            
+            # Check if the network already exists
+            existing_connections = subprocess.run(
+                ["nmcli", "-t", "-f", "NAME", "connection", "show"],
+                capture_output=True,
+                text=True
             )
-            print(f"Network: {ssid} injected!")
-            time.sleep(1)
+            if ssid in existing_connections.stdout.splitlines():
+                print(f"Network '{ssid}' already exists. Modifying...")
+                command = (
+                    f'sudo nmcli connection modify "{ssid}" wifi-sec.key-mgmt wpa-psk '
+                    f'wifi-sec.psk "{password}" connection.autoconnect yes'
+                )
+            else:
+                print(f"Adding new network '{ssid}'...")
+                command = (
+                    f'sudo nmcli connection add type wifi ifname "{wifi_device}" con-name "{ssid}" ssid "{ssid}" '
+                    f'&& sudo nmcli connection modify "{ssid}" wifi-sec.key-mgmt wpa-psk '
+                    f'wifi-sec.psk "{password}" connection.autoconnect yes'
+                )
+
+            subprocess.run(command, shell=True, check=True)
+            time.sleep(1)  # Delay between commands
         except ValueError:
             print(f"Invalid line format: {network}")
+        except subprocess.CalledProcessError as e:
+            print(f"Error while executing command: {e}")
 
     shutil.copyfile(input_file, done_file)
     print(f"Copy of the file saved under the name: {done_file}")
