@@ -55,6 +55,8 @@ and run the script.
     COOKIE_VALUE=your_cookie_value_here
     URL=https://wpa-sec.stanev.org/?api&dl=1
     DISCORD_WEBHOOK_URL=your_discord_webhook_url_here
+
+    #if you don't want to use discord option just enter DISCORD_WEBHOOK_URL=https://discord.com script will give an error 200 but it's ok ;)
     ```
 
     Make sure to replace the placeholders with your actual values:
