@@ -7,44 +7,39 @@ import shutil
 import subprocess
 
 def download_and_process_file():
+    print("Let the Harvaster begin...")
     # Load variables from the .env file
     load_dotenv()
 
     # Read values from the .env file
-    cookie_value = os.getenv('COOKIE_VALUE')
-    url = os.getenv('URL')
-    discord_webhook_url = os.getenv('DISCORD_WEBHOOK_URL')
+    cookie_value = os.getenv('COOKIE_VALUE', '')
+    url = os.getenv('URL', '')
+    discord_webhook_url = os.getenv('DISCORD_WEBHOOK_URL', '')
 
-    # Create a request with a cookie header
-    req = Request(url, headers={'Cookie': f'key={cookie_value}'})
-
-    # Download the file
-    with urlopen(req) as response, open('wpa-sec.founds.potfile', 'wb') as out_file:
-        out_file.write(response.read())
-
-    print("File downloaded successfully.")
-
-    # Read the data from the downloaded file wpa-sec.founds.potfile with proper encoding (utf-8)
-    with open("wpa-sec.founds.potfile", "r", encoding="utf-8") as potfile:
-        lines = potfile.readlines()
-
-    # Store unique networks (SSID + password)
     unique_networks = set()
 
-    # Process lines from wpa-sec.founds.potfile
-    for line in lines:
-        # Split the line by the ":" separator
-        parts = line.strip().split(":")
-        
-        # Skip lines with fewer than 4 parts
-        if len(parts) < 4:
-            continue
+    if cookie_value and url:
+        # Create a request with a cookie header
+        try:
+            req = Request(url, headers={'Cookie': f'key={cookie_value}'})
+            with urlopen(req) as response, open('wpa-sec.founds.potfile', 'wb', encoding="utf-8") as out_file:
+                out_file.write(response.read())
+            print("File downloaded successfully.")
 
-        # Retain the last two parts (SSID + password)
-        network_info = f"{parts[2]}:{parts[3]}"
-        
-        # Add to the set of unique networks
-        unique_networks.add(network_info)
+            # Read the data from the downloaded file wpa-sec.founds.potfile with proper encoding (utf-8)
+            with open("wpa-sec.founds.potfile", "r", encoding="utf-8") as potfile:
+                lines = potfile.readlines()
+
+            # Process lines from wpa-sec.founds.potfile
+            for line in lines:
+                parts = line.strip().split(":")
+                if len(parts) >= 4:
+                    network_info = f"{parts[2]}:{parts[3]}"
+                    unique_networks.add(network_info)
+        except Exception as e:
+            print(f"Error downloading or processing WPA-SEC file: {e}")
+    else:
+        print("Skipping WPA-SEC file processing due to missing COOKIE_VALUE or URL.")
 
     # Try to read data from my-cracked.txt and add to the set of unique networks
     try:
@@ -52,10 +47,7 @@ def download_and_process_file():
             cracked_lines = cracked_file.readlines()
 
         for line in cracked_lines:
-            # Split the line by the ":" separator
             network_info = line.strip()
-            
-            # Add to the set of unique networks
             unique_networks.add(network_info)
     except FileNotFoundError:
         print("File my-cracked.txt not found. Continuing without it.")
@@ -67,14 +59,20 @@ def download_and_process_file():
 
     print("Duplicates removed and data saved to networks.txt.")
 
-    # Send the networks.txt file to Discord using the webhook
-    with open("networks.txt", "rb") as file:
-        response = requests.post(discord_webhook_url, files={"file": file})
-
-    if response.status_code == 204:
-        print("File networks.txt has been sent to Discord.")
+    # Optionally send the networks.txt file to Discord using the webhook
+    if discord_webhook_url:
+        try:
+            with open("networks.txt", "rb", encoding="utf-8") as file:
+                response = requests.post(discord_webhook_url, files={"file": file})
+            if response.status_code == 204:
+                print("File networks.txt has been sent to Discord.")
+            else:
+                print(f"Failed to send the file. Error code: {response.status_code}")
+        except Exception as e:
+            print(f"Error sending file to Discord: {e}")
     else:
-        print(f"Failed to send the file. Error code: {response.status_code}")
+        print("Skipping sending networks.txt to Discord due to missing DISCORD_WEBHOOK_URL.")
+
 
 def process_networks():
     input_file = "networks.txt"
