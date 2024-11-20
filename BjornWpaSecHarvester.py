@@ -22,7 +22,7 @@ def download_and_process_file():
         # Create a request with a cookie header
         try:
             req = Request(url, headers={'Cookie': f'key={cookie_value}'})
-            with urlopen(req) as response, open('wpa-sec.founds.potfile', 'wb', encoding="utf-8") as out_file:
+            with urlopen(req) as response, open('wpa-sec.founds.potfile', 'wb') as out_file:
                 out_file.write(response.read())
             print("File downloaded successfully.")
 
