@@ -32,9 +32,15 @@ and run the script.
 ### Steps to Install
 
 1. Install required Python libraries:
+
+64bit OS
     ```bash
-    sudo apt update && sudo apt install python-dotenv -y
+    sudo apt update && sudo apt install python3-dotenv -y
     ```
+32bit OC
+```bash
+    sudo apt update && sudo pip install python-dotenv --break-system-packages
+```
 
 2. Clone the repository:
     ```bash
@@ -52,11 +58,12 @@ and run the script.
 4. Populate the `.env` file with the following variables:
 
     ```env
-    COOKIE_VALUE=your_cookie_value_here
+    COOKIE_VALUE= #wpa-sec key here 
     URL=https://wpa-sec.stanev.org/?api&dl=1
-    DISCORD_WEBHOOK_URL=your_discord_webhook_url_here
+    DISCORD_WEBHOOK_URL= #discord webhook here
 
-    #if you don't want to use discord option just enter DISCORD_WEBHOOK_URL=https://discord.com script will give an error 200 but it's ok ;)
+    #if you don't want to use wpa-sec service leave it blank but than my-cracked.txt required.
+    #if you don't want to use discord webhooks leave it blank.
     ```
 
     Make sure to replace the placeholders with your actual values:
@@ -64,7 +71,19 @@ and run the script.
     - `URL`: The URL from which to download the Wi-Fi network data.
     - `DISCORD_WEBHOOK_URL`: The Discord webhook URL to send the processed file.
 
-5. You're ready to go! Run the script:
+
+5. `my-cracked.txt` file is needed if you are not using wpa-sec service. 
+
+    `nano my-cracked.txt`
+
+    enter your known networks in format:
+    ```
+    SSID:PASSWORD
+    SSID:PASSWORD
+
+    ```
+
+6. You're ready to go! Run the script:
 
     ```bash
     python3 BjornWpaSecHarvester.py
