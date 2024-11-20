@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def download_file(url, cookie_value, output_file):
+    print("Let the Harvaster begin...")
     """Downloads a file from the given URL using a cookie for authentication."""
     try:
         req = Request(url, headers={'Cookie': f'key={cookie_value}'})
