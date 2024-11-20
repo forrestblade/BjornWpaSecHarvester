@@ -33,14 +33,17 @@ and run the script.
 
 1. Install required Python libraries:
 
-64bit OS
+    64bit OS
+
     ```bash
     sudo apt update && sudo apt install python3-dotenv -y
     ```
-32bit OC
-```bash
-    sudo apt update && sudo pip install python-dotenv --break-system-packages
-```
+
+    32bit OS
+
+    ```bash
+        sudo apt update && sudo pip install python-dotenv --break-system-packages
+    ```
 
 2. Clone the repository:
     ```bash
