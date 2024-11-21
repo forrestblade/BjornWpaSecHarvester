@@ -75,7 +75,7 @@ and run the script.
     - `DISCORD_WEBHOOK_URL`: The Discord webhook URL to send the processed file.
 
 
-5. `my-cracked.txt` file is needed if you are not using wpa-sec service. 
+5. **`my-cracked.txt`** file is needed if you are not using wpa-sec service. 
 
     `nano my-cracked.txt`
 
