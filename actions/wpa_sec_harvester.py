@@ -2,11 +2,10 @@ from typing import Dict, Any, Optional
 from pathlib import Path
 import logging
 from rich.console import Console
-from ..core.security import SecurityManager
-from ..core.file_handler import SecureFileHandler
-from ..core.network_manager import NetworkManager
-from ..utils.helpers import BjornHelper
-
+from BjornWpaSecHarvester.core.security import SecurityManager
+from BjornWpaSecHarvester.core.file_handler import SecureFileHandler
+from BjornWpaSecHarvester.core.network_manager import NetworkManager
+from BjornWpaSecHarvester.utils.helpers import BjornHelper
 class WpaSecHarvesterAction:
     """
     WPA-SEC Harvesting action for Bjorn.
@@ -145,3 +144,4 @@ class WpaSecHarvesterAction:
         except Exception as e:
             self.logger.error(f"Failed to process network {ssid}: {e}")
             return False
+
