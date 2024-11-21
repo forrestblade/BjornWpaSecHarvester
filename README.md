@@ -83,7 +83,6 @@ and run the script.
     ```
     SSID:PASSWORD
     SSID:PASSWORD
-
     ```
 
 6. You're ready to go! Run the script:
