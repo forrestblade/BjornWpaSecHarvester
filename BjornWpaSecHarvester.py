@@ -13,16 +13,16 @@ CRACKED_FILE = os.getenv("CRACKED_FILE", "my-cracked.txt")
 NETWORKS_FILE = os.getenv("NETWORKS_FILE", "networks.txt")
 DONE_FILE = os.getenv("DONE_FILE", "networks_done.txt")
 
-
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-
 def download_file(url, cookie_value, output_file):
-    print("Let the Harvaster begin...")
-    """Downloads a file from the given URL using a cookie for authentication."""
+    """
+    Downloads a file from the given URL using a cookie for authentication.
+    """
     try:
+        logger.info("Starting file download...")
         req = Request(url, headers={'Cookie': f'key={cookie_value}'})
         with urlopen(req) as response, open(output_file, "wb") as out_file:
             out_file.write(response.read())
@@ -31,9 +31,10 @@ def download_file(url, cookie_value, output_file):
         logger.error(f"Error downloading file {output_file}: {e}")
         raise
 
-
 def process_potfile(input_file, unique_networks):
-    """Processes the downloaded potfile and extracts unique networks."""
+    """
+    Processes the potfile and extracts unique networks.
+    """
     try:
         with open(input_file, "r", encoding="utf-8") as potfile:
             lines = potfile.readlines()
@@ -48,9 +49,10 @@ def process_potfile(input_file, unique_networks):
     except UnicodeDecodeError as e:
         logger.error(f"Error decoding {input_file}: {e}")
 
-
 def process_cracked_file(input_file, unique_networks):
-    """Adds networks from the cracked file to the set of unique networks."""
+    """
+    Adds networks from the cracked file to the set of unique networks.
+    """
     try:
         with open(input_file, "r", encoding="utf-8") as cracked_file:
             lines = cracked_file.readlines()
@@ -61,30 +63,31 @@ def process_cracked_file(input_file, unique_networks):
     except FileNotFoundError:
         logger.warning(f"File {input_file} not found. Continuing without it.")
 
-
 def save_unique_networks(output_file, unique_networks):
-    """Saves unique networks to a file."""
+    """
+    Saves the set of unique networks to a file.
+    """
     try:
         with open(output_file, "w", encoding="utf-8") as output:
             for network in sorted(unique_networks):
                 output.write(f"{network}\n")
-        logger.info(f"Unique networks saved to {output_file}.")
+        logger.info(f"Processing {output_file}")
     except OSError as e:
         logger.error(f"Error saving {output_file}: {e}")
 
-
 def send_to_discord(webhook_url, file_path):
-    """Sends a file to Discord using a webhook."""
+    """
+    Sends a file to Discord using a webhook URL.
+    """
     try:
         with open(file_path, "rb") as file:
             response = requests.post(webhook_url, files={"file": file})
         if response.status_code == 204:
-            logger.info(f"File {file_path} has been sent to Discord.")
+            logger.info(f"File {file_path} successfully sent to Discord.")
         else:
             logger.warning(f"Failed to send {file_path}. HTTP status code: {response.status_code}")
     except Exception as e:
         logger.error(f"Error sending file {file_path} to Discord: {e}")
-
 
 def manage_networks(input_file, done_file):
     """Adds new networks to the Wi-Fi configuration using nmcli."""
@@ -108,7 +111,17 @@ def manage_networks(input_file, done_file):
     new_networks = all_networks - processed_networks
 
     if not new_networks:
-        logger.info("No new networks found to process.")
+        logger.info("No new unique networks found. All networks have already been processed.")
+        return
+
+    # Zapisywanie nowych sieci, jeśli istnieją
+    try:
+        with open(done_file, "a") as f:
+            for network in new_networks:
+                f.write(f"{network}\n")
+        logger.info(f"Unique networks saved to {done_file}.")
+    except IOError as e:
+        logger.error(f"Failed to save unique networks to {done_file}: {e}")
         return
 
     try:
@@ -132,8 +145,11 @@ def manage_networks(input_file, done_file):
     for network in new_networks:
         try:
             ssid, password = network.split(":")
+            if not (8 <= len(password) <= 63):
+                logger.warning(f"Skipping network {ssid}: Password must be 8-63 characters long.")
+                continue
             command = [
-                "nmcli", "connection", "add", "type", "wifi", "ifname", wifi_device,
+                "sudo", "nmcli", "connection", "add", "type", "wifi", "ifname", wifi_device,
                 "con-name", ssid, "ssid", ssid, "wifi-sec.key-mgmt", "wpa-psk", "wifi-sec.psk", password,
                 "connection.autoconnect", "yes"
             ]
@@ -144,26 +160,22 @@ def manage_networks(input_file, done_file):
         except subprocess.CalledProcessError as e:
             logger.error(f"Error adding network {network}: {e}")
 
-    shutil.copyfile(input_file, done_file)
-    logger.info(f"Processed networks saved to {done_file}.")
 
 
 def main():
-    load_dotenv()
-
-    cookie_value = os.getenv('COOKIE_VALUE', '')
-    url = os.getenv('URL', '')
-    discord_webhook_url = os.getenv('DISCORD_WEBHOOK_URL', '')
-
-    if not cookie_value or not url:
-        logger.error("Missing COOKIE_VALUE or URL in environment variables.")
-        return
+    load_dotenv()  # Load environment variables from .env file
+    logger.info("The gates to Valhalla have been opened, let the Harvester begin...")
+    # Read environment variables
+    cookie_value = os.getenv("COOKIE_VALUE", "")
+    url = os.getenv("URL", "")
+    discord_webhook_url = os.getenv("DISCORD_WEBHOOK_URL", "")
 
     unique_networks = set()
 
     try:
-        download_file(url, cookie_value, POTFILE)
-        process_potfile(POTFILE, unique_networks)
+        if url and cookie_value:
+            download_file(url, cookie_value, POTFILE)
+            process_potfile(POTFILE, unique_networks)
         process_cracked_file(CRACKED_FILE, unique_networks)
         save_unique_networks(NETWORKS_FILE, unique_networks)
         if discord_webhook_url:
@@ -172,7 +184,5 @@ def main():
     except Exception as e:
         logger.error(f"An error occurred: {e}")
 
-
 if __name__ == "__main__":
     main()
-
